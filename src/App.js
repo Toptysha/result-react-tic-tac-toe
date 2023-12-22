@@ -1,92 +1,98 @@
 import { useState } from 'react';
 import styles from './index.module.css';
 
-const allButtons = [ 
-  ['7', '8', '9'], 
-  ['4', '5', '6'], 
-  ['1', '2', '3'], 
-  ['clear', '0', '←'],
-  ['+', '-', '=']
-]
-
-const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 function App() {
-  const [operand1, setOperand1] = useState('0')
-  const [operand2, setOperand2] = useState('')
-  const [operator, setOperator] = useState('')
 
-  const calcButtons = allButtons.map(e => {
+  const [whoMove, setWhoMove] = useState('X')
+
+  const gameButtons = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']].map(e => {
     return (
-      <div className={styles.allCalcButtons}>
-        <div className={styles.calcButtons}>
-          {e.map(button => {
-            return (
-              <button className={styles.calcButton} key={button} onClick={e => click(e)}>{button}</button>
-            )  
+        <div className={styles.buttonsLine}>
+          {e.map(gameButton => {
+            return (<div id={gameButton} className={styles.button} onClick={event => changeButton(event.target.id)}></div>)  
           })}
         </div>
-      </div>
-    )  
+    )
   })
 
-  const erase = () => {
-    if (operand2 !== '') {
-      setOperand2(pre => pre.slice(0, -1))
-    } else if (operator !== '') {
-      setOperator(pre => pre = '')
-    } else if (operand1 !== '' && operand1.length > 1) {
-      setOperand1(pre => pre.slice(0, -1))
-    } else if (operand1.length === 1 && operand1 !== '0') {
-      setOperand1(pre => pre = '0')
-    }
+  function changeButton(id) {
+    const button = document.querySelector(`#${id}`)
+
+    if (button.textContent === '') {
+      button.textContent = whoMove
+
+       
+    }  
+    checkWinner()  
   }
 
-  const count = () => {
-    if (operator === '+') {
-      setOperand1(`${Number(operand1) + Number(operand2)}`)
-      setOperator('')
-      setOperand2('')
-    } else if (operator === '-') {
-      setOperand1(`${Number(operand1) - Number(operand2)}`)
-      setOperator('')
-      setOperand2('')
+  function checkWinner() {
+    const buttons = document.querySelectorAll(`.${styles.button}`)
+
+    if (
+      ((buttons[0].textContent === buttons[1].textContent) && (buttons[0].textContent === buttons[2].textContent) && (buttons[0].textContent !== '')) ||
+      ((buttons[0].textContent === buttons[4].textContent) && (buttons[0].textContent === buttons[8].textContent) && (buttons[0].textContent !== '')) ||
+      ((buttons[0].textContent === buttons[3].textContent) && (buttons[0].textContent === buttons[6].textContent) && (buttons[0].textContent !== '')) ||
+      ((buttons[1].textContent === buttons[4].textContent) && (buttons[1].textContent === buttons[7].textContent) && (buttons[1].textContent !== '')) ||
+      ((buttons[2].textContent === buttons[5].textContent) && (buttons[2].textContent === buttons[8].textContent) && (buttons[2].textContent !== '')) ||
+      ((buttons[2].textContent === buttons[4].textContent) && (buttons[2].textContent === buttons[6].textContent) && (buttons[2].textContent !== '')) ||
+      ((buttons[3].textContent === buttons[4].textContent) && (buttons[3].textContent === buttons[5].textContent) && (buttons[3].textContent !== '')) ||
+      ((buttons[6].textContent === buttons[7].textContent) && (buttons[6].textContent === buttons[8].textContent) && (buttons[6].textContent !== ''))  
+    ) {
+      winnerBlock()
+    } else {
+      if (whoMove === 'X') {
+        setWhoMove('O')
+      } else {
+        setWhoMove('X')
+      }
     }  
   }
 
-  function click(e) {
-    if (numbers.includes(e.target.textContent)) {
-        if (operator !== ''&& operand2 !== '0') {
-            setOperand2(pre => pre + e.target.textContent)
-        } else if (operand2 === '0') {
-          setOperand2(e.target.textContent)
-        } else if (operand1 !== '0') {
-          setOperand1(pre => pre + e.target.textContent)
-        } else {
-          setOperand1(e.target.textContent)
-        }
-    } else if (e.target.textContent === 'clear') {
-        setOperand1('0')
-        setOperator('')
-        setOperand2('')
-    } else if (e.target.textContent === '←') {
-        erase()
-    } else if (e.target.textContent === '+') {
-        setOperator('+')
-    } else if (e.target.textContent === '-') {
-        setOperator('-')
-    } else if (e.target.textContent === '=') {
-        count()
-    }
+  function winnerBlock() {
+    const buttons = document.querySelectorAll(`.${styles.button}`)
+    const winnerContainer = document.querySelector(`.${styles.winnerBlock}`)
+    winnerContainer.style.visibility = 'visible'
+
+    const winnerNotification = document.createElement('div')
+    winnerNotification.style.margin = `auto`
+    winnerNotification.style.marginTop = `500px`
+    winnerNotification.style.width = '400px'
+    winnerNotification.style.height ='200px'
+    winnerNotification.style.backgroundColor = 'rgba(178, 72, 182, 0.3)'
+    winnerNotification.style.border = '1px solid black'
+    winnerNotification.style.borderRadius = '7px'
+    winnerNotification.style.textAlign = 'center'
+    winnerContainer.append(winnerNotification)
+
+    const winner = document.createElement('h1')
+    winner.textContent = `В этой игре победил: ${whoMove}`
+    winnerNotification.append(winner)
+
+    const newGameButton = document.createElement('button')
+    newGameButton.className = styles.newGameButton
+    newGameButton.textContent = 'Начать новую игру'
+    newGameButton.addEventListener('click', () => {
+      winnerContainer.style.visibility = 'hidden'
+      buttons.forEach(e => e.textContent = '')
+      winnerNotification.remove()
+    })
+    winnerNotification.append(newGameButton)
+    
   }
 
   return (
-    <div className={styles.calcDiv}>
-        <div className={styles.calcRes}>
-            <h1 className="result">{`${operand1} ${operator} ${operand2}`}</h1>
-        </div>
-        <div className="allCalcButtons">{calcButtons}</div> 
-    </div>
+    <>
+      <div className={styles.winnerBlock}></div>
+      <div className={styles.container}>  
+        <h3 className="gameName">Tic-Tac-Toe</h3>
+        <h1 className="whoMove">Ходит: {whoMove}</h1>
+        <div className={styles.game}>{gameButtons}</div> 
+      </div>
+      
+    </>
+    
   );
 }
 
